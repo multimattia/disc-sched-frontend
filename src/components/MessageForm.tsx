@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import axios from "axios";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,14 +37,27 @@ export const MessageForm = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       discordMessage: "",
-      discordChannel: "",
+      discordChannel: "1187605896361169006",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const options = {
+      method: "POST",
+      url: import.meta.env.VITE_DISCORD_ENDPOINT,
+      headers: { "Content-Type": "application/json" },
+      data: {
+        channel: values.discordChannel,
+        message: values.discordMessage,
+      },
+    };
+
+    try {
+      const { data } = await axios.request(options);
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   return (
@@ -60,7 +74,7 @@ export const MessageForm = () => {
                   <Input type="text" placeholder="Message" {...field} />
                 </FormControl>
                 <FormDescription>
-                  This is the message to be sent to the server.
+                  This is the message to be sent to the planning space server.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
