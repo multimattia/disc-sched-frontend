@@ -15,10 +15,11 @@ export const Route = rootRouteWithContext<Context>()({
 });
 
 function RootComponent() {
+  const { isSignedIn } = useAuth();
   return (
     <>
       <nav className="flex max-w-screen-lg mx-auto justify-between items-center">
-        <ul className="p-2 flex gap-2 text-lg my-7 justify-between">
+        <ul className="p-2 flex gap-2 text-lg my-7">
           <Link
             to="/"
             activeProps={{
