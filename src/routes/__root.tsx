@@ -16,12 +16,28 @@ function RootComponent() {
         <Link
           to="/"
           activeProps={{
-            className: "font-bold ",
+            className: "font-bold",
           }}
           activeOptions={{ exact: true }}
         >
           Home
         </Link>{" "}
+        <Link
+          to={"/about"}
+          activeProps={{
+            className: "font-bold",
+          }}
+        >
+          About
+        </Link>
+        <Link
+          to={"/test"}
+          activeProps={{
+            className: "font-bold",
+          }}
+        >
+          test
+        </Link>
       </div>
       <Outlet />
       <ReactQueryDevtools buttonPosition="top-right" />
