@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import axios from "axios";
+import { useMutation } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { getRandomValues } from "crypto";
 
 const formSchema = z.object({
   discordMessage: z.string().min(1, {
@@ -41,23 +43,29 @@ export const MessageForm = () => {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const options = {
-      method: "POST",
-      url: import.meta.env.VITE_DISCORD_ENDPOINT,
-      headers: { "Content-Type": "application/json" },
-      data: {
-        channel: values.discordChannel,
-        message: values.discordMessage,
-      },
-    };
+  const { mutate } = useMutation({
+    mutationFn: (values: z.infer<typeof formSchema>) => {
+      const options = {
+        method: "POST",
+        url: import.meta.env.VITE_DISCORD_ENDPOINT,
+        headers: { "Content-Type": "application/json" },
+        data: {
+          channel: values.discordChannel,
+          message: values.discordMessage,
+        },
+      };
+      return axios.request(options);
+    },
+    onSuccess: (data) => {
+      console.log("Message sent successfully", data);
+    },
+    onError: (error) => {
+      console.error("Message failed to send", error);
+    },
+  });
 
-    try {
-      const { data } = await axios.request(options);
-      console.log(data);
-    } catch (error) {
-      console.error(error);
-    }
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    mutate(values);
   }
 
   return (
