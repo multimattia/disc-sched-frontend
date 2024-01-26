@@ -2,6 +2,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import axios from "axios";
+import { useMutation } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -41,23 +44,36 @@ export const MessageForm = () => {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const options = {
-      method: "POST",
-      url: import.meta.env.VITE_DISCORD_ENDPOINT,
-      headers: { "Content-Type": "application/json" },
-      data: {
-        channel: values.discordChannel,
-        message: values.discordMessage,
-      },
-    };
+  const { mutate } = useMutation({
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
+      const promiseFn = () => {
+        const options = {
+          method: "POST",
+          url: import.meta.env.VITE_DISCORD_ENDPOINT,
+          headers: { "Content-Type": "application/json" },
+          data: {
+            channel: values.discordChannel,
+            message: values.discordMessage,
+          },
+        };
+        return axios.request(options);
+      };
 
-    try {
-      const { data } = await axios.request(options);
-      console.log(data);
-    } catch (error) {
-      console.error(error);
-    }
+      return toast.promise(promiseFn(), {
+        loading: "Sending message...",
+        success: (data) => {
+          console.log(data);
+          return `Succesfully sent message: ${data.data.message}`;
+        },
+        error: (data) => {
+          return `Error sending message: ${data.message}`;
+        },
+      });
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    mutate(values);
   }
 
   return (
@@ -99,6 +115,7 @@ export const MessageForm = () => {
           <Button type="submit">Send</Button>
         </form>
       </Form>
+      <Toaster richColors position="bottom-center" expand={true} />
     </div>
   );
 };
