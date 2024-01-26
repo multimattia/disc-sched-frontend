@@ -3,6 +3,8 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import axios from "axios";
 import { useMutation } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +17,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { getRandomValues } from "crypto";
 
 const formSchema = z.object({
   discordMessage: z.string().min(1, {
@@ -44,23 +45,30 @@ export const MessageForm = () => {
   });
 
   const { mutate } = useMutation({
-    mutationFn: (values: z.infer<typeof formSchema>) => {
-      const options = {
-        method: "POST",
-        url: import.meta.env.VITE_DISCORD_ENDPOINT,
-        headers: { "Content-Type": "application/json" },
-        data: {
-          channel: values.discordChannel,
-          message: values.discordMessage,
-        },
+    mutationFn: async (values: z.infer<typeof formSchema>) => {
+      const promiseFn = () => {
+        const options = {
+          method: "POST",
+          url: import.meta.env.VITE_DISCORD_ENDPOINT,
+          headers: { "Content-Type": "application/json" },
+          data: {
+            channel: values.discordChannel,
+            message: values.discordMessage,
+          },
+        };
+        return axios.request(options);
       };
-      return axios.request(options);
-    },
-    onSuccess: (data) => {
-      console.log("Message sent successfully", data);
-    },
-    onError: (error) => {
-      console.error("Message failed to send", error);
+
+      return toast.promise(promiseFn(), {
+        loading: "Sending message...",
+        success: (data) => {
+          console.log(data);
+          return `Succesfully sent message: ${data.data.message}`;
+        },
+        error: (data) => {
+          return `Error sending message: ${data.message}`;
+        },
+      });
     },
   });
 
@@ -107,6 +115,7 @@ export const MessageForm = () => {
           <Button type="submit">Send</Button>
         </form>
       </Form>
+      <Toaster richColors position="bottom-center" expand={true} />
     </div>
   );
 };
